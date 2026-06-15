@@ -1,0 +1,22 @@
+const DB_KEY='subletmate_v8_db';
+const defaultDB={
+  listings:[
+    {id:'L1001',title:'Clayton近Monash一房转租',suburb:'Clayton',rent:360,type:'Single Room',status:'approved',score:88,risk:'Low',reasons:['Student ID verified','Lease agreement verified','Bond/RTBA evidence verified','Rent is within normal suburb range'],docs:{studentId:'student_id_demo.pdf',photoId:'photo_id_demo.pdf',lease:'lease_demo.pdf',consent:'sublet_consent_demo.pdf',bond:'rtba_receipt_demo.pdf',photos:'6 photos',inspection:'inspection_video.mp4',utility:'utility_bill_demo.pdf'},desc:'步行到Monash Clayton，包家具，适合学生。',owner:'Yuxuan',created:'2026-06-15',needRoommate:true,roommateReq:{gender:'不限',school:'Monash',sleep:'正常',clean:'比较干净'}},
+    {id:'L1002',title:'CBD studio短租 7月入住',suburb:'Melbourne CBD',rent:520,type:'Studio',status:'pending',score:null,risk:'Pending Review',reasons:['Waiting for admin document review'],docs:{studentId:'student_card.png',photoId:'',lease:'lease.pdf',consent:'',bond:'',photos:'3 photos',inspection:'',utility:''},desc:'近QV和State Library，适合短租。',owner:'Demo User',created:'2026-06-15',needRoommate:false,roommateReq:null}
+  ],
+  applications:[{id:'A9001',listingId:'L1001',name:'Iris Chen',message:'想这周inspection，可以加微信吗？',status:'new'}],
+  roommateProfile:null,
+  roommateRequests:[],
+  roommates:[
+    {id:'R1',name:'Kevin',age:23,gender:'男生',school:'Monash',major:'Finance',suburb:'Clayton',sleep:'正常',clean:'比较干净',cook:'偶尔',smoke:'不抽烟',pet:'能接受',guests:'偶尔',profile:'不抽烟，爱干净，作息正常，Finance学生，想住Clayton。'},
+    {id:'R2',name:'Sarah',age:22,gender:'女生',school:'Monash',major:'Nursing',suburb:'Caulfield',sleep:'早睡早起',clean:'洁癖/很干净',cook:'很少做',smoke:'不抽烟',pet:'不能接受',guests:'几乎不会',profile:'安静，不开party，偶尔做饭，接受女生室友。'},
+    {id:'R3',name:'Leo',age:24,gender:'男生',school:'RMIT',major:'IT',suburb:'Melbourne CBD',sleep:'夜猫子',clean:'一般',cook:'天天做',smoke:'不抽烟',pet:'能接受',guests:'偶尔',profile:'夜猫子，IT学生，预算450/w，想住CBD。'},
+    {id:'R4',name:'Mia',age:25,gender:'女生',school:'Melbourne Uni',major:'Accounting',suburb:'Chadstone',sleep:'正常',clean:'比较干净',cook:'偶尔',smoke:'不抽烟',pet:'能接受',guests:'几乎不会',profile:'希望室友安静、讲卫生、公共区域及时收拾。'}
+  ]
+};
+function loadDB(){const raw=localStorage.getItem(DB_KEY);if(!raw){localStorage.setItem(DB_KEY,JSON.stringify(defaultDB));return structuredClone(defaultDB)}try{return JSON.parse(raw)}catch(e){return structuredClone(defaultDB)}}
+function saveDB(db){localStorage.setItem(DB_KEY,JSON.stringify(db))}
+function resetDB(){localStorage.setItem(DB_KEY,JSON.stringify(defaultDB));location.reload()}
+function calcScore(listing,review){let score=40;let reasons=[];function add(ok,points,good,bad){if(ok){score+=points;reasons.push(good)}else{score-=Math.ceil(points*.7);reasons.push(bad)}}add(review.studentId,12,'Student ID verified','Student ID missing / not verified');add(review.photoId,10,'Photo ID verified','Photo ID missing / not verified');add(review.lease,18,'Lease agreement verified','Lease agreement missing / not verified');add(review.consent,18,'Sublet consent verified','No landlord/agent sublet consent');add(review.bond,14,'Bond/RTBA evidence verified','Bond/RTBA receipt missing');add(review.photos,8,'Sufficient property photos verified','Insufficient property photos');add(review.inspection,8,'Inspection/video proof verified','No inspection/video proof');add(review.utility,5,'Address proof cross-check passed','No utility/address proof');const normal={Clayton:[260,430],Caulfield:[280,460],'Melbourne CBD':[400,650],Chadstone:[260,430],'Glen Waverley':[280,460]};let range=normal[listing.suburb]||[250,650];if(listing.rent<range[0]*.75){score-=20;reasons.push('Rent is unusually low for this suburb')}else if(listing.rent>range[1]*1.35){score-=8;reasons.push('Rent is unusually high for this suburb')}else{score+=7;reasons.push('Rent is within normal suburb range')}score=Math.max(0,Math.min(100,score));let risk=score>=80?'Low':score>=60?'Medium':'High';return{score,risk,reasons}}
+function riskPill(risk){if(risk==='Low')return 'good'; if(risk==='Medium'||risk==='Pending Review')return 'warn'; return 'bad'}
+function roommateScore(a,b){if(!a)return 70;let score=40;const add=(cond,pts)=>{if(cond)score+=pts};add(a.suburb===b.suburb,16);add(a.school===b.school,12);add(a.sleep===b.sleep,10);add(a.clean===b.clean,12);add(a.smoke===b.smoke || (a.smoke==='不介意室友抽烟' && b.smoke==='抽烟'),10);add(a.pet===b.pet || a.pet==='能接受',8);add(a.guests===b.guests,8);add(a.gender==='不公开'||b.gender==='不公开'||a.gender===b.gender,4);return Math.max(20,Math.min(99,score))}

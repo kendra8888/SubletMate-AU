@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="zh">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>SubletMate AU - Member</title>
+  <link rel="stylesheet" href="../shared/styles.css">
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div>
+      <div class="brand">SubletMate <span>AU</span></div>
+      <div class="muted">Member Portal · 找房源 · 发转租 · 找室友</div>
+    </div>
+    <div class="nav">
+      <a class="btn ghost" href="../admin/index.html">Admin Console</a>
+      <button class="btn ghost" onclick="resetDB()">Reset Demo</button>
+    </div>
+  </div>
+
+  <section class="hero">
+    <h1>安全转租 + 室友匹配，一起做。</h1>
+    <p>房源材料由后台审核生成 Scam Score；室友资料由用户填写，用于匹配生活习惯和区域偏好。</p>
+  </section>
+
+  <div class="tabs">
+    <button class="tab active" onclick="showTab('listings',this)">找房源</button>
+    <button class="tab" onclick="showTab('publish',this)">发布转租</button>
+    <button class="tab" onclick="showTab('roommate',this)">室友匹配</button>
+    <button class="tab" onclick="showTab('myMatches',this)">我的匹配</button>
+    <button class="tab" onclick="showTab('mine',this)">我的提交</button>
+  </div>
+
+  <main id="listings">
+    <div class="row space">
+      <h2>Verified Listings</h2>
+      <select id="suburbFilter" onchange="renderListings()">
+        <option value="all">All suburbs</option>
+        <option>Clayton</option><option>Caulfield</option><option>Melbourne CBD</option><option>Chadstone</option><option>Glen Waverley</option>
+      </select>
+    </div>
+    <div id="listingGrid" class="grid"></div>
+  </main>
+
+  <main id="publish" class="hidden">
+    <h2>发布转租房源</h2>
+    <div class="notice">房源先进入 Pending Review。发布人只能上传材料，不能自己勾选认证；Scam Score 由后台审核后生成。</div>
+    <div class="card section">
+      <div class="form-grid">
+        <div><label>房源标题</label><input id="title" placeholder="例如：Clayton近Monash主卧转租"></div>
+        <div><label>区域</label><select id="suburb"><option>Clayton</option><option>Caulfield</option><option>Melbourne CBD</option><option>Chadstone</option><option>Glen Waverley</option></select></div>
+        <div><label>租金 / week</label><input id="rent" type="number" placeholder="360"></div>
+        <div><label>房型</label><select id="type"><option>Single Room</option><option>Master Room</option><option>Studio</option><option>Whole Apartment</option></select></div>
+      </div>
+      <label>房源描述</label>
+      <textarea id="desc" rows="4" placeholder="入住时间、家具、bill、交通、室友情况等"></textarea>
+
+      <h3 class="section">是否同步发布室友需求</h3>
+      <label class="checkline"><input id="needRoommate" type="checkbox" checked> 这个房源需要找室友 / tenant，可以进入 Roommate Match</label>
+      <div id="roommateReqBox" class="grid2 section">
+        <div><label>偏好性别</label><select id="prefGender"><option>不限</option><option>女生</option><option>男生</option></select></div>
+        <div><label>偏好学校</label><select id="prefSchool"><option>不限</option><option>Monash</option><option>Melbourne Uni</option><option>RMIT</option><option>Deakin</option></select></div>
+        <div><label>希望室友作息</label><select id="prefSleep"><option>正常</option><option>早睡早起</option><option>夜猫子可接受</option></select></div>
+        <div><label>希望卫生习惯</label><select id="prefClean"><option>比较干净</option><option>洁癖/很干净</option><option>一般也可接受</option></select></div>
+      </div>
+
+      <h3 class="section">审核材料上传</h3>
+      <div class="grid2">
+        <div class="filebox"><label>Student ID *</label><input id="docStudent" type="file"><small>确认发布人学生身份。</small></div>
+        <div class="filebox"><label>Photo ID</label><input id="docPhoto" type="file"><small>护照/驾照等，仅后台审核。</small></div>
+        <div class="filebox"><label>Lease Agreement *</label><input id="docLease" type="file"><small>确认你确实有租赁关系。</small></div>
+        <div class="filebox"><label>Sublet Consent / Landlord Approval *</label><input id="docConsent" type="file"><small>房东/中介允许转租的邮件或文件。</small></div>
+        <div class="filebox"><label>Bond / RTBA Receipt</label><input id="docBond" type="file"><small>押金或RTBA证明。</small></div>
+        <div class="filebox"><label>Property Photos *</label><input id="docPhotos" type="file" multiple><small>房间、厨房、浴室、公共区照片。</small></div>
+        <div class="filebox"><label>Inspection / Video Proof</label><input id="docInspection" type="file"><small>视频看房、实地看房证明。</small></div>
+        <div class="filebox"><label>Utility Bill / Address Proof</label><input id="docUtility" type="file"><small>辅助确认地址一致。</small></div>
+      </div>
+      <button class="btn section" onclick="submitListing()">Submit for Review</button>
+    </div>
+  </main>
+
+  <main id="roommate" class="hidden">
+    <h2>我的室友匹配资料</h2>
+    <div class="card">
+      <p class="muted">真实上线后这里会做用户注册、隐私控制和举报系统；现在先验证匹配逻辑是否有吸引力。</p>
+      <div class="form-grid">
+        <div><label>昵称</label><input id="rmName" placeholder="例如 Xuan"></div>
+        <div><label>年龄</label><input id="rmAge" type="number" placeholder="25"></div>
+        <div><label>性别</label><select id="rmGender"><option>女生</option><option>男生</option><option>不公开</option></select></div>
+        <div><label>学校</label><select id="rmSchool"><option>Monash</option><option>Melbourne Uni</option><option>RMIT</option><option>Deakin</option><option>Other</option></select></div>
+        <div><label>专业</label><input id="rmMajor" placeholder="Banking & Finance"></div>
+        <div><label>想住区域</label><select id="rmSuburb"><option>Clayton</option><option>Caulfield</option><option>Melbourne CBD</option><option>Chadstone</option><option>Glen Waverley</option></select></div>
+        <div><label>作息</label><select id="rmSleep"><option>正常</option><option>早睡早起</option><option>夜猫子</option></select></div>
+        <div><label>卫生习惯</label><select id="rmClean"><option>比较干净</option><option>洁癖/很干净</option><option>一般</option></select></div>
+        <div><label>做饭频率</label><select id="rmCook"><option>偶尔</option><option>天天做</option><option>很少做</option></select></div>
+        <div><label>抽烟吗</label><select id="rmSmoke"><option>不抽烟</option><option>抽烟</option><option>不介意室友抽烟</option></select></div>
+        <div><label>宠物接受度</label><select id="rmPet"><option>能接受</option><option>不能接受</option><option>自己有宠物</option></select></div>
+        <div><label>带朋友回家频率</label><select id="rmGuests"><option>几乎不会</option><option>偶尔</option><option>经常</option></select></div>
+      </div>
+      <label>自我介绍 / 想找什么样的室友</label>
+      <textarea id="rmBio" rows="4">想找安静、干净、好沟通的室友。</textarea>
+      <button class="btn section" onclick="saveRoommateProfile()">保存并开始匹配</button>
+    </div>
+    <h2 class="section">推荐室友</h2>
+    <div class="grid" id="roommateGrid"></div>
+  </main>
+
+  <main id="myMatches" class="hidden">
+    <h2>我的匹配请求</h2>
+    <div id="matchRequests" class="grid"></div>
+  </main>
+
+  <main id="mine" class="hidden">
+    <h2>我的提交</h2>
+    <div id="myListings" class="grid"></div>
+  </main>
+
+  <div class="footer">Prototype v8 · Member/Admin separated · localStorage simulates Firebase linkage.</div>
+</div>
+<script src="../shared/data.js"></script>
+<script src="member.js"></script>
+</body>
+</html>
